@@ -35,6 +35,7 @@ function playGame() {
 function startRun(event) {
   event.preventDefault();
   keys[event.key] = true;
+  
 }
 
 function stopRun(event) {
