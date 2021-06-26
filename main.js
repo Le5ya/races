@@ -1,13 +1,24 @@
+const MAX_ENEMY = 7;
+const HEIGHT_ELEM = 100;
 const score = document.querySelector (".score"), 
       game = document.querySelector (".game"),
       start = document.querySelector (".start"),
       gameArea = document.querySelector (".game-area"),
-      car = document.createElement('div');
+      car = document.createElement('div'),
+      btns = document.querySelectorAll('.btn');
+
+// const music = document.createElement('embed');
+// music.src = 'audio.mp3'
+
+// music.classList.add('vusially-hidden');
+ const music = new Audio('audio.mp3');
+
+ music.volume = 0.5;
+
+
 car.classList.add('car');
 
-start.addEventListener('click', startGame);
-document.addEventListener('keydown', startRun);
-document.addEventListener('keyup', stopRun);
+
 
 const keys = {
   ArrowUp: false,
@@ -21,28 +32,64 @@ const setting = {
   speed: 3,
   trafic: 3
 };
-function getQuantityElements(heightElement) {
-  return document.documentElement.clientHeight / heightElement + 1;
-}
 
-function startGame(){
+const changeLevel = (lvl) => {
+  switch(lvl) {
+    case '1':
+      setting.trafic = 4;
+      setting.speed = 3;
+      break;
+    case '2':
+      setting.trafic = 3;
+      setting.speed = 4;
+      break;
+    case '3':
+      setting.trafic = 3;
+      setting.speed = 5;
+      break;
+  }
+}
+function getQuantityElements(heightElement) {
+  return (gameArea.offsetHeight / heightElement) + 1
+}
+const getRandomEnemy = (max) => Math.floor((Math.random() * max) + 1);
+console.log(document.documentElement.clientHeight)
+
+function startGame(event){
+  // document.body.append(music);
+  music.play();
+  const target = event.target;
+  if(!target.classList.contains('btn')) return;
+
+  const levelGame = target.dataset.levelGame;
+
+  changeLevel(levelGame);
+
+  btns.forEach(btn => btn.disabled = true);
+
+  gameArea.style.minHeight = ((document.documentElement.clientHeight - HEIGHT_ELEM ) / HEIGHT_ELEM ) * HEIGHT_ELEM -30 + 'px'
+  // gameArea.style.minHeight = 800 + 'px';
   start.classList.add('hide');
   gameArea.innerHTML = '';
 
-  for(i =0; i < getQuantityElements(100); i++) {
+  for(i =0; i < getQuantityElements(HEIGHT_ELEM); i++) {
     const line = document.createElement('div');
     line.classList.add('line');
-    line.style.top = (i * 75) + 'px';
-    line.y = i * 100;
-    gameArea.appendChild(line);
+    line.style.top = (i * HEIGHT_ELEM) + 'px';
+    line.style.heidht = (HEIGHT_ELEM / 2) + 'px';
+    line.y = i * HEIGHT_ELEM;
+    gameArea.append(line);
   }
-for(let i = 0; i < getQuantityElements(100 * setting.trafic); i++){
+for(let i = 0; i < getQuantityElements(HEIGHT_ELEM * setting.trafic); i++){
   const enemy = document.createElement('div');
   enemy.classList.add('enemy');
-  enemy.y = -100 * setting.trafic * (i + 1);
+  enemy.y = -HEIGHT_ELEM * setting.trafic * (i + 1);
   enemy.style.left = Math.floor((Math.random() * (gameArea.offsetWidth - 50))) + 'px';
   enemy.style.top = enemy.y + 'px';
-  enemy.style.background = 'transparent url(./image/enemy2.png) center / cover no-repeat';
+  enemy.style.background = `transparent 
+  url(image/enemy${getRandomEnemy(MAX_ENEMY)}.png) 
+  center / cover 
+  no-repeat`;
   enemy.style.transform = 'rotate(180deg)';
   gameArea.appendChild(enemy);
 }
@@ -78,16 +125,24 @@ function playGame() {
     car.style.top = setting.y + 'px';
 
     requestAnimationFrame(playGame);
-  }
+   }else{
+    //  music.remove();
+    music.pause();
+     btns.forEach(btn => btn.disabled = false);
+   }
 }
 function startRun(event) {
-  event.preventDefault();
-  keys[event.key] = true;
+if(keys.hasOwnProperty(event.key)){
+    event.preventDefault();
+    keys[event.key] = true;
+}
 }
 
 function stopRun(event) {
- event.preventDefault();
- keys[event.key] = false;
+if(keys.hasOwnProperty(event.key)){
+   event.preventDefault();
+   keys[event.key] = false;
+}
  
 }
 function moveRoad() {
@@ -95,8 +150,8 @@ function moveRoad() {
  lines.forEach(function(line) {
    line.y += setting.speed;
    line.style.top = line.y + 'px';
-   if(line.y >= document.documentElement.clientHeight){
-     line.y = -100;
+   if(line.y >= gameArea.offsetHeight){
+     line.y = -HEIGHT_ELEM;
    }
  });
 }
@@ -113,17 +168,19 @@ function moveEnemy(){
       carRect.bottom >= enemyRect.top){
         setting.start = false;
         start.classList.remove('hide');
-        start.style.top = score.offsetHeight + 'px';
+        // start.style.top = score.offsetHeight + 'px';
       }
     item.y += setting.speed;
     item.style.top = item.y + 'px';
 
-  if(item.y >= document.documentElement.clientHeight){
-     item.y = -100 * setting.trafic;
+  if(item.y >= gameArea.offsetHeight){
+     item.y = -HEIGHT_ELEM * setting.trafic;
      item.style.left = Math.floor(Math.random() * (gameArea.offsetWidth - 50)) + 'px';
      
    }
   });  
  
 }
-
+start.addEventListener('click', startGame);
+document.addEventListener('keydown', startRun);
+document.addEventListener('keyup', stopRun);
